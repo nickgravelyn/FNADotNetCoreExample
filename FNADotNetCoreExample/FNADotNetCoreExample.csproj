@@ -39,11 +39,7 @@
     <FNALibs Condition="'$(IsWindows)' == 'true' and '$(Is64Bit)' == 'false'">x86</FNALibs>
   </PropertyGroup>
 
-  <!--
-    Copy over the correct fnalibs for running. Note that this is just to support
-    local development. When we publish the app we'll do things a little
-    differently based on the platform target.
-  -->
+  <!-- Copy over the correct fnalibs -->
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)/fnalibs/$(FNALibs)/*.*">
       <Link>%(Filename)%(Extension)</Link>
