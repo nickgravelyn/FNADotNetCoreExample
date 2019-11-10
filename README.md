@@ -2,9 +2,9 @@ This repo is an example of building an FNA game using .NET Core 3, including
 steps for code signing and notarization of the app. While this is using FNA the
 general approach should work fine for any .NET Core 3 app.
 
-The "game" is just a CornflowerBlue window but it does have some logic to setup
-the proper `RootDirectory` for the `ContentManager`. Everything else interesting
-is in the `FNADotNetCoreExample/FNADotNetCoreExample.csproj` file.
+The game code contains some logic to show how you can configure the
+`RootDirectory` for the `ContentManager`. Everything else interesting is in the
+`FNADotNetCoreExample/FNADotNetCoreExample.csproj` file.
 
 ## WIP Notice
 
