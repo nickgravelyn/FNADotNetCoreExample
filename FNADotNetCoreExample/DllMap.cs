@@ -37,11 +37,7 @@ namespace FNADotNetCoreExample
 
     public static void Register(Assembly assembly)
     {
-      var configPath = Path.Combine(
-        Path.GetDirectoryName(assembly.Location),
-        Path.GetFileName(assembly.Location) + ".config"
-      );
-
+      var configPath = assembly.Location + ".config";
       if (File.Exists(configPath))
       {
         var assemblyMapping = new Dictionary<string, string>();
