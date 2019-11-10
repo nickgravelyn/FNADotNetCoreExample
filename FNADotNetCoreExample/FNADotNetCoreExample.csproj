@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RuntimeIdentifiers>win-x64;win-x86;osx-x64;linux-x64;linux-x86</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FNA\FNA.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    When publishing RuntimeIdentifier will tell us the platform we're building
+    so we use that to determine which platform to build for.
+    When that value isn't set it means we're doing a regular build so we just
+    use the OS doing the build to figure out what to build for.
+  -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <IsLinux Condition="$(RuntimeIdentifier.Contains('linux'))">true</IsLinux>
+    <IsMacOS Condition="$(RuntimeIdentifier.Contains('osx'))">true</IsMacOS>
+    <IsWindows Condition="$(RuntimeIdentifier.Contains('win'))">true</IsWindows>
+    <Is64Bit Condition="$(RuntimeIdentifier.Contains('x64'))">true</Is64Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+    <IsMacOS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsMacOS>
+    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
+    <Is64Bit Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">true</Is64Bit>
+  </PropertyGroup>
+
+  <!-- Determine the correct folder for our fnalibs -->
+  <PropertyGroup>
+    <FNALibs Condition="'$(IsLinux)' == 'true' and '$(Is64Bit)' == 'false'">lib</FNALibs>
+    <FNALibs Condition="'$(IsLinux)' == 'true' and '$(Is64Bit)' == 'true'">lib64</FNALibs>
+    <FNALibs Condition="'$(IsMacOS)' == 'true'">osx</FNALibs>
+    <FNALibs Condition="'$(IsWindows)' == 'true' and '$(Is64Bit)' == 'true'">x64</FNALibs>
+    <FNALibs Condition="'$(IsWindows)' == 'true' and '$(Is64Bit)' == 'false'">x86</FNALibs>
+  </PropertyGroup>
+
+  <!--
+    Copy over the correct fnalibs for running. Note that this is just to support
+    local development. When we publish the app we'll do things a little
+    differently based on the platform target.
+  -->
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)/../fnalibs/$(FNALibs)/*.*">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </Content>
+  </ItemGroup>
+
+</Project>
