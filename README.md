@@ -46,7 +46,7 @@ dotnet publish FNADotNetCoreExample \
   -c Release \
   -r osx-x64 \
   -o path/to/publish/osx-x64 \
-  "/p:MacOSCodeSignIdentity=Your Certificate Name"
+  "/p:MacOSCodeSignIdentity=\"Your Certificate Name\""
 ```
 
 or add it to a `PropertyGroup` in your project file:
