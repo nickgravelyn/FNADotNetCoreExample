@@ -78,7 +78,7 @@ system that we're going to be using a JIT compiler.
 ### Notarization
 
 Once you've signed the app using the project or the `codesign` tool you can
-easily submit for notarization. First you need to ZIP up the app bundle:
+submit for notarization. First you need to ZIP up the app bundle:
 
 ```sh
 zip -r \
