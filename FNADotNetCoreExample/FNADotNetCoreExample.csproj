@@ -45,11 +45,66 @@
     differently based on the platform target.
   -->
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)/../fnalibs/$(FNALibs)/*.*">
+    <Content Include="$(MSBuildThisFileDirectory)/fnalibs/$(FNALibs)/*.*">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
   </ItemGroup>
+
+  <!--
+    The CreateMacOSAppBundle handles bundling things up for macOS and is hooked
+    up here to always run after the Publish target completes.
+  -->
+  <Target
+    Condition="$(IsMacOS) == 'true'"
+    Name="BundleOnPublish"
+    AfterTargets="Publish"
+    DependsOnTargets="CreateMacOSAppBundle"
+  />
+  <Target Name="CreateMacOSAppBundle">
+    <!-- Ensure clean output -->
+    <RemoveDir Directories="$(PublishDir)$(ProjectName).app" />
+    <Delete Files="$(PublishDir)$(ProjectName).zip" />
+
+    <!--
+      Make the macOS App Bundle Structure:
+      https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW19
+    -->
+    <MakeDir Directories="$(PublishDir)$(ProjectName).app" />
+    <MakeDir Directories="$(PublishDir)$(ProjectName).app/Contents" />
+    <MakeDir Directories="$(PublishDir)$(ProjectName).app/Contents/MacOS" />
+    <MakeDir Directories="$(PublishDir)$(ProjectName).app/Contents/Resources" />
+
+    <!-- Copy static resources from our game directory into the bundle -->
+    <Copy
+      SourceFiles="./macOS/Info.plist"
+      DestinationFolder="$(PublishDir)$(ProjectName).app/Contents"
+      OverwriteReadOnlyFiles="true"
+    />
+
+    <!-- Move all published files into the app bundle -->
+    <ItemGroup>
+      <PublishedFiles
+        Include="$(PublishDir)**/*"
+        Exclude="$(PublishDir)$(ProjectName).app/**/*" />
+    </ItemGroup>
+    <Move
+      SourceFiles="@(PublishedFiles)"
+      DestinationFolder="$(PublishDir)$(ProjectName).app/Contents/MacOS"
+      OverwriteReadOnlyFiles="true"
+    />
+
+    <!-- Codesign -->
+    <Message Text="Code signing app with '$(MacOSCodeSignIdentity)'..." Importance="high"/>
+    <Exec Command="codesign -s '$(MacOSCodeSignIdentity)' --entitlements macOS/Publish.entitlements --force --deep --verbose --options runtime '$(PublishDir)$(ProjectName).app'" />
+
+    <!-- Create a zip file of the app -->
+    <ZipDirectory
+      SourceDirectory="$(PublishDir)$(ProjectName).app"
+      DestinationFile="$(PublishDir)$(ProjectName).zip"
+      Overwrite="true"
+    />
+  </Target>
 
 </Project>
