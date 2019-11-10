@@ -2,8 +2,22 @@ This repo is an example of building an FNA game using .NET Core 3, including
 steps for code signing and notarization of the app. While this is using FNA the
 general approach should work fine for any .NET Core 3 app.
 
-The "game" is just a CornflowerBlue window. Everything interesting is in the
-csproj file.
+The "game" is just a CornflowerBlue window but it does have some logic to setup
+the proper `RootDirectory` for the `ContentManager`. Everything else interesting
+is in the `FNADotNetCoreExample/FNADotNetCoreExample.csproj` file.
+
+## WIP Notice
+
+This is a work in progress to explore a reasonable build and publish pattern for
+developing apps with .NET Core 3, specifically looking at games made using the
+FNA framework. It is not necessarily complete and I've not yet verified the
+outputs on all platforms, nor submitted games to Apple Mac App Store. I am
+hoping to leverage this to ship an updated build of
+[Shipwreck](https://shipwreckgame.com) to various stores including the Mac App
+Store so we'll see how that goes once I get the game updated.
+
+What I'm saying is there might be bugs or gaps. If you find them, please feel
+free to submit PRs or report issues.
 
 # Building and running
 
@@ -14,25 +28,45 @@ dotnet run -p FNADotNetCoreExample
 ```
 
 That'll take care of building and copying the correct fnalibs into the output
-directory so that you can run the game.
+directory along with actually starting up the game.
 
 # Publishing
 
 Generally speaking you just use `dotnet publish` to publish the various
-platforms. Something like this:
+platforms. Something like this produces [self-contained
+builds](https://docs.microsoft.com/en-us/dotnet/core/deploying/index#self-contained-deployments-scd)
+for each target platform.
 
 ```sh
-dotnet publish FNADotNetCoreExample -c Release -r linux-x64 -o path/to/publish/linux-x64
-dotnet publish FNADotNetCoreExample -c Release -r osx-x64 -o path/to/publish/osx-x64
-dotnet publish FNADotNetCoreExample -c Release -r win-x64 -o path/to/publish/win-x64
-dotnet publish FNADotNetCoreExample -c Release -r win-x86 -o path/to/publish/win-x86
+dotnet publish FNADotNetCoreExample \
+  -c Release \
+  -r linux-x64 \
+  -o path/to/publish/linux-x64
+
+dotnet publish FNADotNetCoreExample \
+  -c Release \
+  -r osx-x64 \
+  -o path/to/publish/osx-x64
+
+dotnet publish FNADotNetCoreExample \
+  -c Release \
+  -r win-x64 \
+  -o path/to/publish/win-x64
+
+dotnet publish FNADotNetCoreExample \
+  -c Release \
+  -r win-x86 \
+  -o path/to/publish/win-x86
 ```
 
-You should publish each platform to separate directories.
+You should publish each platform to separate directories or you'll stomp on
+common named files.
 
 Of sad note it [doesn't look](https://github.com/dotnet/coreclr/issues/9265)
 like prebuilt binaries exist for x86 Linux otherwise you'd have `linux-x86` in
-there, too.
+there, too. You'd also need to add `linux-x86` to the `RuntimeIdentifiers`
+property in the csproj file. The project should handle finding the right
+`fnalibs` for x86 Linux once you do that.
 
 ## macOS
 
