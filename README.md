@@ -6,7 +6,7 @@ The game code contains some logic to show how you can configure the
 `RootDirectory` for the `ContentManager`. Everything else interesting is in the
 `FNADotNetCoreExample/FNADotNetCoreExample.csproj` file.
 
-## WIP Notice
+## 🚨 Warning 🚨
 
 This is a work in progress to explore a reasonable build and publish pattern for
 developing apps with .NET Core 3, specifically looking at games made using the
