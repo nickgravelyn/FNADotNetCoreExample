@@ -106,7 +106,6 @@
     AfterTargets="CreateMacOSAppBundle"
     Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true' and '$(MacOSCodeSignIdentity)' != ''"
   >
-    <!-- Codesign -->
     <Message Text="Code signing app with '$(MacOSCodeSignIdentity)'..." Importance="high"/>
     <Exec Command="codesign -s '$(MacOSCodeSignIdentity)' --entitlements macOS/Publish.entitlements --force --deep --verbose --options runtime '$(PublishDir)$(ProjectName).app'" />
   </Target>
