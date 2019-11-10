@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -26,6 +27,15 @@ namespace FNADotNetCoreExample
        * the root of the repository.
        */
       Content.RootDirectory = "../../../../Content";
+#else
+      if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+      {
+        Content.RootDirectory = "../Resources/content";
+      }
+      else
+      {
+        Content.RootDirectory = "content";
+      }
 #endif
 
       _spriteBatch = new SpriteBatch(GraphicsDevice);

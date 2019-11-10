@@ -40,11 +40,28 @@
 
   <!-- Copy over the correct fnalibs -->
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)/fnalibs/$(FNALibs)/*.*">
+    <None Include="$(MSBuildThisFileDirectory)/fnalibs/$(FNALibs)/*.*">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
-    </Content>
+    </None>
+  </ItemGroup>
+
+  <!--
+    On Windows and Linux we can simply copy the Content directory over to the
+    publish directory. For macOS the bundle target below will handle copying
+    since we need to put the content into the Resources folder in the app
+    bundle.
+  -->
+  <ItemGroup>
+    <None
+      Condition="'$(IsLinux)' == 'true' or '$(IsWindows)' == 'true'"
+      Include="$(MSBuildThisFileDirectory)/../Content/*.*"
+    >
+      <Link>content/%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Visible>False</Visible>
+    </None>
   </ItemGroup>
 
   <!--
@@ -75,6 +92,14 @@
       DestinationFolder="$(PublishDir)$(ProjectName).app/Contents"
       OverwriteReadOnlyFiles="true"
     />
+    <ItemGroup>
+      <ContentFiles Include="$(MSBuildThisFileDirectory)/../Content/**/*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ContentFiles)"
+      DestinationFolder="$(PublishDir)$(ProjectName).app/Contents/Resources/content"
+      OverwriteReadOnlyFiles="true"
+    />
 
     <!-- Move all published files into the app bundle -->
     <ItemGroup>
@@ -83,7 +108,8 @@
         Exclude="
           $(PublishDir)$(ProjectName).app/**/*;
           $(PublishDir)**/*.pdb
-        " />
+        "
+      />
     </ItemGroup>
     <Move
       SourceFiles="@(PublishedFiles)"
