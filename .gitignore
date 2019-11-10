@@ -2,5 +2,3 @@ bin/
 obj/
 .DS_Store
 Thumbs.db
-
-Directory.Build.props

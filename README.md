@@ -1,5 +1,6 @@
-This repo is an example of building an FNA game using .NET Core 3, including a
-full publishing setup that also handles code signing and notarization on macOS.
+This repo is an example of building an FNA game using .NET Core 3, including
+steps for code signing and notarization of the app. While this is using FNA the
+general approach should work fine for any .NET Core 3 app.
 
 The "game" is just a CornflowerBlue window. Everything interesting is in the
 csproj file.
@@ -21,11 +22,13 @@ Generally speaking you just use `dotnet publish` to publish the various
 platforms. Something like this:
 
 ```sh
-dotnet publish FNADotNetCoreExample -c Release -r linux-x64 -o ~/Desktop/FNADotNetCoreExample/linux-x64
-dotnet publish FNADotNetCoreExample -c Release -r osx-x64 -o ~/Desktop/FNADotNetCoreExample/macOS "/p:MacOSCodeSignIdentity=Your Certificate Name"
-dotnet publish FNADotNetCoreExample -c Release -r win-x64 -o ~/Desktop/FNADotNetCoreExample/win-x64
-dotnet publish FNADotNetCoreExample -c Release -r win-x86 -o ~/Desktop/FNADotNetCoreExample/win-x86
+dotnet publish FNADotNetCoreExample -c Release -r linux-x64 -o path/to/publish/linux-x64
+dotnet publish FNADotNetCoreExample -c Release -r osx-x64 -o path/to/publish/osx-x64
+dotnet publish FNADotNetCoreExample -c Release -r win-x64 -o path/to/publish/win-x64
+dotnet publish FNADotNetCoreExample -c Release -r win-x86 -o path/to/publish/win-x86
 ```
+
+You should publish each platform to separate directories.
 
 Of sad note it [doesn't look](https://github.com/dotnet/coreclr/issues/9265)
 like prebuilt binaries exist for x86 Linux otherwise you'd have `linux-x86` in
@@ -33,10 +36,20 @@ there, too.
 
 ## macOS
 
-The publishing process on macOS requires an additional `MacOSCodeSignIdentity`
-property to facilitate code signing, shown above as being passed along on the
-commandline, but you could also add this to a `PropertyGroup` in the csproj if
-you wanted to not have to type it in all the time.
+### Code signing
+
+The project supports code signing for you if you are publishing on a Mac and
+provide a `MacOSCodeSignIdentity` property. You can pass it on the command line:
+
+```sh
+dotnet publish FNADotNetCoreExample \
+  -c Release \
+  -r osx-x64 \
+  -o path/to/publish/osx-x64 \
+  "/p:MacOSCodeSignIdentity=Your Certificate Name"
+```
+
+or add it to a `PropertyGroup` in your project file:
 
 ```xml
 <PropertyGroup>
@@ -44,10 +57,36 @@ you wanted to not have to type it in all the time.
 </PropertyGroup>
 ```
 
-When publishing for macOS a nice app bundle is produced, code signed,
-and then zipped up.
+If you publish for macOS from Windows or Linux, or simply want to sign the code
+yourself, you can always take the resulting app bundle and sign it on macOS
+using this command:
 
-Afterwards, you can use existing Xcode tools to [submit for notarization](https://developer.apple.com/documentation/xcode/notarizing_your_app_before_distribution/customizing_the_notarization_workflow?language=objc#3087734):
+```sh
+codesign \
+  -s "Your Certificate Name" \
+  --entitlements FNADotNetCoreExample/macOS/Publish.entitlements \
+  --force \
+  --deep \
+  --verbose \
+  --options runtime \
+  path/to/publish/osx-x64/FNADotNetCoreExample.app
+```
+
+This signs the app using the hardened runtime, and the entitlements tell the
+system that we're going to be using a JIT compiler.
+
+### Notarization
+
+Once you've signed the app using the project or the `codesign` tool you can
+easily submit for notarization. First you need to ZIP up the app bundle:
+
+```sh
+zip -r \
+  path/to/publish/osx-x64/FNADotNetCoreExample.zip \
+  path/to/publish/osx-x64/FNADotNetCoreExample.app
+```
+
+Then you can use existing Xcode tools to [submit for notarization](https://developer.apple.com/documentation/xcode/notarizing_your_app_before_distribution/customizing_the_notarization_workflow?language=objc#3087734):
 
 ```sh
 xcrun altool \
@@ -55,7 +94,7 @@ xcrun altool \
   --primary-bundle-id com.example.fnadotnetcoreexample \
   --username <username> \
   --password <password> \
-  --file ~/Desktop/FNADotNetCoreExample/macOS/FNADotNetCoreExample.zip
+  --file path/to/publish/osx-x64/FNADotNetCoreExample.zip
 ```
 
 That will print out a RequestUUID. You can use that to query for notarization
@@ -72,13 +111,8 @@ When the status for the request is complete you can then staple the results to
 the app file:
 
 ```sh
-xcrun stapler staple ~/Desktop/FNADotNetCoreExample/macOS/FNADotNetCoreExample.app
+xcrun stapler staple path/to/publish/osx-x64/FNADotNetCoreExample.app
 ```
-
-This process is separate from the actual publish because it requires a full
-upload of the ZIP file to Apple and then the time for notarization can be many
-minutes. I'd probably write a script to do the upload, wait, and staple but I'm
-it's also not a huge piece of the goal of this example.
 
 # Licenses
 

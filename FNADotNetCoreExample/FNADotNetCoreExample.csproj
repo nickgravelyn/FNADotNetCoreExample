@@ -57,12 +57,10 @@
     up here to always run after the Publish target completes.
   -->
   <Target
-    Condition="$(IsMacOS) == 'true'"
-    Name="BundleOnPublish"
+    Name="CreateMacOSAppBundle"
     AfterTargets="Publish"
-    DependsOnTargets="CreateMacOSAppBundle"
-  />
-  <Target Name="CreateMacOSAppBundle">
+    Condition="$(IsMacOS) == 'true'"
+  >
     <!-- Ensure clean output -->
     <RemoveDir Directories="$(PublishDir)$(ProjectName).app" />
     <Delete Files="$(PublishDir)$(ProjectName).zip" />
@@ -87,24 +85,30 @@
     <ItemGroup>
       <PublishedFiles
         Include="$(PublishDir)**/*"
-        Exclude="$(PublishDir)$(ProjectName).app/**/*" />
+        Exclude="
+          $(PublishDir)$(ProjectName).app/**/*;
+          $(PublishDir)**/*.pdb
+        " />
     </ItemGroup>
     <Move
       SourceFiles="@(PublishedFiles)"
       DestinationFolder="$(PublishDir)$(ProjectName).app/Contents/MacOS"
       OverwriteReadOnlyFiles="true"
     />
+  </Target>
 
+  <!--
+    If you're compiling on macOS and you've provided a MacOSCodeSignIdentity
+    then the project will automatically code sign the resulting app bundle.
+  -->
+  <Target
+    Name="CodeSignMacOSApp"
+    AfterTargets="CreateMacOSAppBundle"
+    Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true' and '$(MacOSCodeSignIdentity)' != ''"
+  >
     <!-- Codesign -->
     <Message Text="Code signing app with '$(MacOSCodeSignIdentity)'..." Importance="high"/>
     <Exec Command="codesign -s '$(MacOSCodeSignIdentity)' --entitlements macOS/Publish.entitlements --force --deep --verbose --options runtime '$(PublishDir)$(ProjectName).app'" />
-
-    <!-- Create a zip file of the app -->
-    <ZipDirectory
-      SourceDirectory="$(PublishDir)$(ProjectName).app"
-      DestinationFile="$(PublishDir)$(ProjectName).zip"
-      Overwrite="true"
-    />
   </Target>
 
 </Project>
