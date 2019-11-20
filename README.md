@@ -11,10 +11,7 @@ The game code contains some logic to show how you can configure the
 This is a work in progress to explore a reasonable build and publish pattern for
 developing apps with .NET Core 3, specifically looking at games made using the
 FNA framework. It is not necessarily complete and I've not yet verified the
-outputs on all platforms, nor submitted games to Apple Mac App Store. I am
-hoping to leverage this to ship an updated build of
-[Shipwreck](https://shipwreckgame.com) to various stores including the Mac App
-Store so we'll see how that goes once I get the game updated.
+outputs on all platforms, nor submitted games to Apple Mac App Store.
 
 What I'm saying is there might be bugs or gaps. If you find them, please feel
 free to submit PRs or report issues.
